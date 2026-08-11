@@ -52,7 +52,7 @@ The repository includes screenshots showing:
 #### `owner_address_reorder()`
 - owner name and address data in the dataset is fragmented among three columns, ‘ownername’, ‘owneraddress1’, and ‘owneraddress2’. owner_address_reorder() utilizes is_address1() and is_address2() to identify which values belong where and reorganizes them to fit the defined data structure.
 #### `owner_address_clean()`
-- as previously mentioned, owner name and address data is fragmented. owner_address_clean() applies the owner_address_reorder() function to the entire dataset and cleans the fragmented data.
+- as previously mentioned, owner name and address data is fragmented. owner_address_clean() applies the `owner_address_reorder()` function to the entire dataset and cleans the fragmented data.
 
 ![Owner Address Cleaning](images/owner_address_clean_example.png)
 |Case|Issue|Action|
@@ -94,11 +94,25 @@ The repository includes screenshots showing:
 #### `validate_address()`
 - applies the google maps API’s ‘addressvalidation’ function to address and city data.
 #### `apply_address_validation()`
-- applies the validate_address function to a dataframe. If there exists a file with previously validated address data, that file and the primary key (‘permitnum’ for the solar permits data) can be included in the function so that only non-validated rows will have the validate_address function applied to them. This allows for faster address validation as new data is released, and alleviates validated address data from being passed through the API again. The validated address and latitude and longitude data is saved to new columns in the dataset.
+- applies the `validate_address()` function to a dataframe. If there exists a file with previously validated address data, that file and the primary key (‘permitnum’ for the solar permits data) can be included in the function so that only non-validated rows will have the `validate_address()` function applied to them. This allows for faster address validation as new data is released, and alleviates validated address data from being passed through the API again. The validated address and latitude and longitude data is saved to new columns in the dataset.
 
 ![Address Validation](images/apply_address_validation_example.png)
 
-**Cary's Town Hall and Raliegh's Municipal Building addresses were passed through the apply_address_validation() function to find their exact address and geographical coordinates**
+**Cary's Town Hall and Raliegh's Municipal Building addresses were passed through the `apply_address_validation()` function to find their exact address and geographical coordinates**
+
+### inflation_adjust.py
+#### `extract_CPI_data()`
+- extracts Consumer Price Index data from a url (I used the data found here: https://data.bls.gov/timeseries/CUUR0000SA0?years_option=all_years)
+#### `clean_CPI_data()`
+- removes unnecessary columns from the CPI data, changes month names to corresponding integer values, and uses the pandas `.melt()` function to transform the CPI data into a more usable form.
+#### `replace_missing_values()`
+- finds all indices with a CPI value of '-(X)' for months where data was not collected, then uses numpy's `.interp()` function to use Linear Interpolation to estimate the missing values, and inplaces those estimates in place of all '-(X)' values
+#### `CPI_data()`
+- applies `extract_CPI_data()`, `clean_CPI_data()`, and `replace_missing_values()` function to a url (https://data.bls.gov/timeseries/CUUR0000SA0?years_option=all_years) to extract, clean, and estimate missing values for the Consumer Price Index data
+#### `merge_CPI()`
+- takes an inputted dataframe and date column and joins it with the CPI data on the Year and Month of that date given by the date column
+#### `calculate_inlfation_adjustment()`
+- uses `CPI_data()` to extract and clean the CPI data from a url (https://data.bls.gov/timeseries/CUUR0000SA0?years_option=all_years), extracts the most recent entry in the CPI data, then calculates the adjusted inflation amount on a specified column, and saves that as a new column containing the month and year from the most recent CPI value
 
 ## Results
 The reusable cleaning pipeline:
@@ -108,6 +122,7 @@ The reusable cleaning pipeline:
 - reduced contractor company names from 107 unique entries to 86 standardized names
 - added validated addresses
 - added latitude/longitude coordinates
+- adjusted the project cost data for inflation for more accurate analysis
 - produced a reusable workflow for future data releases
 
 ## Future Work
